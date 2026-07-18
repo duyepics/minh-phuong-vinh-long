@@ -26,6 +26,8 @@ export const metadata: Metadata = {
   description: "Trực quan hóa và bán lẻ gốm sứ Minh Phương",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({
   children,
 }: Readonly<{
