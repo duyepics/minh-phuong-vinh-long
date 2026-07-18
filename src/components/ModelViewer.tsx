@@ -3,32 +3,18 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Eye, EyeOff, Pause, Play, RotateCcw } from 'lucide-react';
 
-// Định nghĩa kiểu cho custom element <model-viewer>
+// Định nghĩa kiểu cho custom element <model-viewer> (Tương thích React 19)
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      'model-viewer': React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          src?: string;
-          alt?: string;
-          'auto-rotate'?: boolean;
-          'camera-controls'?: boolean;
-          ar?: boolean;
-          'ar-modes'?: string;
-          'ar-scale'?: string;
-          'ios-src'?: string;
-          'shadow-intensity'?: string;
-          'exposure'?: string;
-          'environment-image'?: string;
-          poster?: string;
-          'rotation-per-second'?: string;
-          'interaction-prompt'?: string;
-          style?: React.CSSProperties;
-          class?: string;
-          className?: string;
-        },
-        HTMLElement
-      >;
+      'model-viewer': any;
+    }
+  }
+  namespace React {
+    namespace JSX {
+      interface IntrinsicElements {
+        'model-viewer': any;
+      }
     }
   }
 }
