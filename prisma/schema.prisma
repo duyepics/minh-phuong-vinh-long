@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+
+// Bảng Danh mục (Hỗ trợ Cha - Con)
+model Category {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  
+  // Kỹ thuật Self-relation cho danh mục cha/con
+  parentId  String?
+  parent    Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryHierarchy")
+
+  // Liên kết 1-nhiều với Sản phẩm
+  products  Product[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+// Bảng Sản phẩm Gốm sứ (Đã cập nhật thêm Category)
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  price       Int?
+  imageUrl    String?  
+  model3dUrl  String?  
+
+  // Thông số vật lý & Kỹ thuật
+  height       String?
+  width        String?
+  baseDiameter String?
+  capacity     String?
+  weight       String?
+
+  // Thuộc tính mỹ thuật & Nghệ thuật
+  glazeType    String?
+  material     String?
+  pattern      String?
+  artisan      String?
+
+  // Quản lý vận hành & Xuất khẩu
+  packing      String?
+  usageNotes   String?
+  origin       String?
+  
+  // Khóa ngoại liên kết tới bảng Category
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  
+  // Liên kết 1-nhiều với Hotspot
+  hotspots    Hotspot[]
+  
+  // Liên kết 1-nhiều với ProductImage (Gallery)
+  images      ProductImage[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Bảng Hình ảnh 2D bổ sung của Sản phẩm
+model ProductImage {
+  id        String   @id @default(cuid())
+  url       String
+  label     String?  // Nội dung chú thích ảnh (ví dụ: Mặt trước, Mặt sau, Trái, Phải...)
+  
+  // Khóa ngoại liên kết tới bảng Product
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Bảng Điểm chú thích 3D (Hotspot) cho Sản phẩm
+model Hotspot {
+  id        String   @id @default(cuid())
+  position  String   // Tọa độ, vd: "1 1 1"
+  normal    String   // Pháp tuyến, vd: "0 1 0"
+  label     String   // Nội dung chú thích
+  
+  // Khóa ngoại liên kết tới bảng Product
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Bảng Bài viết / Tin tức
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String   @db.Text
+  imageUrl  String?
+  published Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Bảng Yêu cầu báo giá
+model ContactRequest {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String
+  company   String?
+  message   String?  @db.Text
+  status    String   @default("PENDING") // PENDING hoặc RESOLVED
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Bảng Cài đặt cấu hình chung (Site Settings)
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text // Store JSON string
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
