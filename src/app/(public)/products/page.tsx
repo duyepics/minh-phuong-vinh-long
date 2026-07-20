@@ -18,7 +18,8 @@ export default async function ProductsPage(props: {
   const searchParams = await props.searchParams
   const headersList = await headers()
   const userAgent = headersList.get('user-agent') || ''
-  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(userAgent)
+  const secChUaMobile = headersList.get('sec-ch-ua-mobile')
+  const isMobile = secChUaMobile === '?1' || /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
 
   const q = typeof searchParams.q === 'string' ? searchParams.q : undefined
   const categoryId = typeof searchParams.category === 'string' ? searchParams.category : undefined
