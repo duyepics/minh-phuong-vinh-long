@@ -87,12 +87,12 @@ export default function ModelViewer({ src, alt = '3D Model', poster, iosSrc, hot
         {/* Nút AR Tùy chỉnh */}
         <button 
           slot="ar-button" 
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md px-4 py-2.5 rounded-full text-sm font-semibold text-[var(--color-forest)] shadow-lg flex items-center gap-2 border border-white hover:scale-105 active:scale-95 transition-all z-10"
+          className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm p-2 rounded-full text-[var(--color-forest)] shadow-sm hover:bg-white transition-all hover:scale-105 active:scale-95 z-10"
+          title="Xem trong phòng của bạn"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-[18px] h-[18px]">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" />
           </svg>
-          <span>Xem trong phòng của bạn</span>
         </button>
 
         {/* Render danh sách hotspots */}
