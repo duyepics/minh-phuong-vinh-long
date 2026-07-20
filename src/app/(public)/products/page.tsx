@@ -15,13 +15,13 @@ export default async function ProductsPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const searchParams = await props.searchParams
-  
+
   const q = typeof searchParams.q === 'string' ? searchParams.q : undefined
   const categoryId = typeof searchParams.category === 'string' ? searchParams.category : undefined
   const sort = typeof searchParams.sort === 'string' ? searchParams.sort : 'newest'
   const pageParam = typeof searchParams.page === 'string' ? searchParams.page : '1'
   const currentPage = parseInt(pageParam, 10) > 0 ? parseInt(pageParam, 10) : 1
-  const pageSize = 9
+  const pageSize = 8
 
   // Construct Prisma 'where' clause
   const where: any = {}
@@ -73,7 +73,7 @@ export default async function ProductsPage(props: {
   return (
     <div className="bg-[#F5F1EB] min-h-screen py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Breadcrumb */}
         <nav className="flex mb-8 text-sm font-medium" aria-label="Breadcrumb">
           <ol className="inline-flex items-center space-x-1 md:space-x-3">
@@ -94,7 +94,7 @@ export default async function ProductsPage(props: {
 
         {/* Main Content Area */}
         <div className="flex flex-col lg:flex-row gap-8">
-          
+
           {/* Sidebar Filters */}
           <div className="w-full lg:w-1/4 shrink-0">
             <ProductFilters categories={categories} />
