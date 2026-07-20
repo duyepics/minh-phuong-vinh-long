@@ -3,6 +3,7 @@ import ProductCard from '@/components/ProductCard'
 import ProductFilters from '@/components/ProductFilters'
 import Link from 'next/link'
 import { ChevronRight, Home } from 'lucide-react'
+import Pagination from '@/components/Pagination'
 
 export const metadata = {
   title: 'Sản Phẩm 3D | Gốm Sứ Minh Phương',
@@ -18,6 +19,9 @@ export default async function ProductsPage(props: {
   const q = typeof searchParams.q === 'string' ? searchParams.q : undefined
   const categoryId = typeof searchParams.category === 'string' ? searchParams.category : undefined
   const sort = typeof searchParams.sort === 'string' ? searchParams.sort : 'newest'
+  const pageParam = typeof searchParams.page === 'string' ? searchParams.page : '1'
+  const currentPage = parseInt(pageParam, 10) > 0 ? parseInt(pageParam, 10) : 1
+  const pageSize = 9
 
   // Construct Prisma 'where' clause
   const where: any = {}
@@ -42,7 +46,7 @@ export default async function ProductsPage(props: {
   }
 
   // Fetch data in parallel
-  const [categories, products] = await Promise.all([
+  const [categories, products, totalProducts] = await Promise.all([
     prisma.category.findMany({
       where: { parentId: null },
       include: {
@@ -57,9 +61,14 @@ export default async function ProductsPage(props: {
       orderBy,
       include: {
         category: true
-      }
-    })
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize
+    }),
+    prisma.product.count({ where })
   ])
+
+  const totalPages = Math.ceil(totalProducts / pageSize)
 
   return (
     <div className="bg-[#F5F1EB] min-h-screen py-12">
@@ -94,11 +103,14 @@ export default async function ProductsPage(props: {
           {/* Products Grid */}
           <div className="flex-1">
             {products.length > 0 ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+                  {products.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+                <Pagination totalPages={totalPages} currentPage={currentPage} />
+              </>
             ) : (
               <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-[#E0DCD4]/50">
                 <h3 className="text-xl font-semibold text-[var(--color-forest)] mb-2">Không tìm thấy sản phẩm nào</h3>
