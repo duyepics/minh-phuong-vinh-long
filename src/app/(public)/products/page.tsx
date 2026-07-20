@@ -4,6 +4,7 @@ import ProductFilters from '@/components/ProductFilters'
 import Link from 'next/link'
 import { ChevronRight, Home } from 'lucide-react'
 import Pagination from '@/components/Pagination'
+import { headers } from 'next/headers'
 
 export const metadata = {
   title: 'Sản Phẩm 3D | Gốm Sứ Minh Phương',
@@ -15,13 +16,16 @@ export default async function ProductsPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const searchParams = await props.searchParams
+  const headersList = await headers()
+  const userAgent = headersList.get('user-agent') || ''
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(userAgent)
 
   const q = typeof searchParams.q === 'string' ? searchParams.q : undefined
   const categoryId = typeof searchParams.category === 'string' ? searchParams.category : undefined
   const sort = typeof searchParams.sort === 'string' ? searchParams.sort : 'newest'
   const pageParam = typeof searchParams.page === 'string' ? searchParams.page : '1'
   const currentPage = parseInt(pageParam, 10) > 0 ? parseInt(pageParam, 10) : 1
-  const pageSize = 8
+  const pageSize = isMobile ? 8 : 9
 
   // Construct Prisma 'where' clause
   const where: any = {}
