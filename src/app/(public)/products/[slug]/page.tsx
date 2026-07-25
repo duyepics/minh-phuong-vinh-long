@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import ProductMediaGallery from '@/components/ProductMediaGallery';
 import ProductCard from '@/components/ProductCard';
+import RelatedProductsSlider from '@/components/RelatedProductsSlider';
 import { Button } from '@/components/ui/button';
 import { recordPageView } from '@/actions/analytics';
 
@@ -51,13 +52,13 @@ export default async function ProductDetailPage(props: { params: Promise<{ slug:
         categoryId: product.categoryId,
         id: { not: product.id }
       },
-      take: 4,
+      take: 8,
       include: { category: true }
     });
 
     relatedProducts = [...sameCategoryProducts];
 
-    if (relatedProducts.length < 4) {
+    if (relatedProducts.length < 8) {
       if (product.category?.parentId) {
         const parentCategoryProducts = await prisma.product.findMany({
           where: {
@@ -67,7 +68,7 @@ export default async function ProductDetailPage(props: { params: Promise<{ slug:
             ],
             id: { notIn: [product.id, ...relatedProducts.map(p => p.id)] }
           },
-          take: 4 - relatedProducts.length,
+          take: 8 - relatedProducts.length,
           include: { category: true }
         });
         relatedProducts = [...relatedProducts, ...parentCategoryProducts];
@@ -77,7 +78,7 @@ export default async function ProductDetailPage(props: { params: Promise<{ slug:
             category: { parentId: product.categoryId },
             id: { notIn: [product.id, ...relatedProducts.map(p => p.id)] }
           },
-          take: 4 - relatedProducts.length,
+          take: 8 - relatedProducts.length,
           include: { category: true }
         });
         relatedProducts = [...relatedProducts, ...childCategoryProducts];
@@ -236,23 +237,7 @@ export default async function ProductDetailPage(props: { params: Promise<{ slug:
         )}
 
         {/* Gợi ý Sản phẩm liên quan */}
-        {relatedProducts.length > 0 && (
-          <div className="mt-20 pt-10 border-t border-[#E0DCD4] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-700">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-heading font-bold text-[var(--color-forest)]">
-                Sản phẩm tương tự
-              </h3>
-              <Link href="/products" className="text-sm font-medium text-[var(--color-gold)] hover:text-[var(--color-teak)] transition-colors">
-                Xem tất cả &rarr;
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map(relatedProduct => (
-                <ProductCard key={relatedProduct.id} product={relatedProduct} />
-              ))}
-            </div>
-          </div>
-        )}
+        <RelatedProductsSlider products={relatedProducts} />
       </div>
     </div>
   );
