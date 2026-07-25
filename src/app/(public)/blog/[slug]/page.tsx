@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Calendar, ChevronLeft } from 'lucide-react'
+import { recordPageView } from '@/actions/analytics'
 
 // Cấu hình revalidate và dynamic params
 export const dynamicParams = true
@@ -41,6 +42,9 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
   if (!post || !post.published) {
     notFound()
   }
+
+  // Ghi nhận 1 lượt xem bài viết
+  recordPageView('POST', post.id).catch(() => {})
 
   const formattedDate = new Intl.DateTimeFormat('vi-VN', {
     day: 'numeric',

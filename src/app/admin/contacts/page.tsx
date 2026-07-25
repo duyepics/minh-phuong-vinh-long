@@ -12,9 +12,11 @@ import {
   Mail,
   Phone,
   Building,
+  Eye,
 } from 'lucide-react'
 import { getContacts, updateContactStatus, deleteContact } from './actions'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import QuotationDetailModal from '@/components/admin/QuotationDetailModal'
 
 type ContactRequest = {
   id: string
@@ -31,6 +33,7 @@ type ContactRequest = {
 export default function AdminContacts() {
   const [contacts, setContacts] = useState<ContactRequest[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedContact, setSelectedContact] = useState<ContactRequest | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [statusConfirm, setStatusConfirm] = useState<{ id: string; newStatus: string } | null>(null)
   
@@ -168,7 +171,11 @@ export default function AdminContacts() {
             </thead>
             <tbody>
               {contacts.map((contact) => (
-                <tr key={contact.id}>
+                <tr
+                  key={contact.id}
+                  onClick={() => setSelectedContact(contact)}
+                  className="hover:bg-[#FAF8F5] transition-colors cursor-pointer"
+                >
                   <td className="align-top">
                     <div className="font-medium text-sm text-gray-900 mb-1">
                       {contact.name}
@@ -184,18 +191,18 @@ export default function AdminContacts() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5 text-sm text-gray-700">
                         <Phone size={14} className="text-gray-400" />
-                        <a href={`tel:${contact.phone}`} className="hover:text-[var(--color-teak)]">{contact.phone}</a>
+                        <a href={`tel:${contact.phone}`} onClick={(e) => e.stopPropagation()} className="hover:text-[var(--color-teak)]">{contact.phone}</a>
                       </div>
                       {contact.email && (
                         <div className="flex items-center gap-1.5 text-sm text-gray-700">
                           <Mail size={14} className="text-gray-400" />
-                          <a href={`mailto:${contact.email}`} className="hover:text-[var(--color-teak)]">{contact.email}</a>
+                          <a href={`mailto:${contact.email}`} onClick={(e) => e.stopPropagation()} className="hover:text-[var(--color-teak)]">{contact.email}</a>
                         </div>
                       )}
                     </div>
                   </td>
                   <td className="align-top max-w-[300px]">
-                    <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                    <div className="text-sm text-gray-700 line-clamp-2 bg-[#FAFAF8] p-2 rounded border border-[#E0DCD4]">
                       {contact.message || <span className="text-gray-400 italic">Không có lời nhắn</span>}
                     </div>
                   </td>
@@ -217,8 +224,16 @@ export default function AdminContacts() {
                       </div>
                     </div>
                   </td>
-                  <td className="align-top">
-                    <div className="flex items-center justify-end gap-1">
+                  <td className="align-top" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        className="dash-btn-secondary text-xs !py-1.5 !px-2.5 flex items-center gap-1"
+                        onClick={() => setSelectedContact(contact)}
+                        title="Xem chi tiết form"
+                      >
+                        <Eye size={14} />
+                        <span>Xem</span>
+                      </button>
                       {contact.status === 'PENDING' ? (
                         <button
                           className="dash-btn-ghost !p-2 !rounded-lg text-green-600 hover:bg-green-50"
@@ -237,7 +252,7 @@ export default function AdminContacts() {
                         </button>
                       )}
                       <button
-                        className="dash-btn-danger"
+                        className="dash-btn-danger !p-2"
                         onClick={() => setDeleteConfirm(contact.id)}
                         title="Xóa yêu cầu"
                       >
@@ -314,6 +329,17 @@ export default function AdminContacts() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal xem chi tiết Form yêu cầu báo giá */}
+      <QuotationDetailModal
+        contact={selectedContact}
+        isOpen={!!selectedContact}
+        onClose={() => setSelectedContact(null)}
+        onToggleStatus={(id, curStatus) =>
+          handleUpdateStatus(id, curStatus === 'PENDING' ? 'RESOLVED' : 'PENDING')
+        }
+        onDelete={(id) => handleDelete(id)}
+      />
     </div>
   )
 }

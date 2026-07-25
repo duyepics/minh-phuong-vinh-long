@@ -5,6 +5,7 @@ import { ChevronRight, Home } from 'lucide-react';
 import ProductMediaGallery from '@/components/ProductMediaGallery';
 import ProductCard from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
+import { recordPageView } from '@/actions/analytics';
 
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
@@ -38,6 +39,9 @@ export default async function ProductDetailPage(props: { params: Promise<{ slug:
   if (!product) {
     notFound();
   }
+
+  // Ghi nhận 1 lượt xem sản phẩm
+  recordPageView('PRODUCT', product.id).catch(() => {});
 
   let relatedProducts: any[] = [];
   

@@ -31,6 +31,7 @@ export async function submitQuotationRequest(prevState: any, formData: FormData)
         phone,
         company: company || null,
         message,
+        productName: productName || null,
         status: "PENDING",
       },
     });

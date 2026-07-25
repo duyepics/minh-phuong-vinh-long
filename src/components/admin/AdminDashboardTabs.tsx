@@ -21,9 +21,13 @@ import {
   Sparkles,
   RefreshCw,
   Building,
-  Calendar
+  Calendar,
+  Trash2,
+  BarChart3,
 } from 'lucide-react'
-import { updateContactStatus } from '@/app/admin/contacts/actions'
+import { updateContactStatus, deleteContact } from '@/app/admin/contacts/actions'
+import QuotationDetailModal from './QuotationDetailModal'
+import AdminAnalyticsTab from './AdminAnalyticsTab'
 
 export interface SerializedContact {
   id: string
@@ -73,7 +77,7 @@ interface AdminDashboardTabsProps {
   recentPosts: SerializedPost[]
 }
 
-type TabKey = 'overview' | 'inquiries' | 'products' | 'posts'
+type TabKey = 'overview' | 'analytics' | 'inquiries' | 'products' | 'posts'
 
 export default function AdminDashboardTabs({
   stats,
@@ -83,6 +87,7 @@ export default function AdminDashboardTabs({
 }: AdminDashboardTabsProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
   const [contacts, setContacts] = useState<SerializedContact[]>(initialContacts)
+  const [selectedContact, setSelectedContact] = useState<SerializedContact | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const pendingCount = contacts.filter((c) => c.status === 'PENDING').length
@@ -94,6 +99,9 @@ export default function AdminDashboardTabs({
     setContacts((prev) =>
       prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
     )
+    if (selectedContact && selectedContact.id === id) {
+      setSelectedContact((prev) => (prev ? { ...prev, status: newStatus } : null))
+    }
 
     startTransition(async () => {
       const res = await updateContactStatus(id, newStatus)
@@ -102,6 +110,22 @@ export default function AdminDashboardTabs({
         setContacts((prev) =>
           prev.map((c) => (c.id === id ? { ...c, status: currentStatus } : c))
         )
+        if (selectedContact && selectedContact.id === id) {
+          setSelectedContact((prev) => (prev ? { ...prev, status: currentStatus } : null))
+        }
+        alert(res.error)
+      }
+    })
+  }
+
+  const handleDeleteContact = (id: string) => {
+    setContacts((prev) => prev.filter((c) => c.id !== id))
+    if (selectedContact?.id === id) {
+      setSelectedContact(null)
+    }
+    startTransition(async () => {
+      const res = await deleteContact(id)
+      if (res.error) {
         alert(res.error)
       }
     })
@@ -112,6 +136,11 @@ export default function AdminDashboardTabs({
       key: 'overview',
       label: 'Tổng quan',
       icon: <LayoutDashboard size={18} />,
+    },
+    {
+      key: 'analytics',
+      label: 'Thống kê & Phân tích',
+      icon: <BarChart3 size={18} />,
     },
     {
       key: 'inquiries',
@@ -296,10 +325,16 @@ export default function AdminDashboardTabs({
               ) : (
                 <div className="divide-y divide-[#EDEAE4]">
                   {contacts.slice(0, 4).map((c) => (
-                    <div key={c.id} className="p-4 hover:bg-[#FAF8F5] transition-colors flex items-start justify-between gap-4">
+                    <div
+                      key={c.id}
+                      onClick={() => setSelectedContact(c)}
+                      className="p-4 hover:bg-[#FAF8F5] transition-colors flex items-start justify-between gap-4 cursor-pointer group"
+                    >
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold text-sm text-[var(--color-forest)] truncate">{c.name}</p>
+                          <p className="font-semibold text-sm text-[var(--color-forest)] group-hover:text-[var(--color-teak)] truncate">
+                            {c.name}
+                          </p>
                           {c.company && (
                             <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 truncate max-w-[140px]">
                               {c.company}
@@ -316,7 +351,7 @@ export default function AdminDashboardTabs({
                           </p>
                         )}
                       </div>
-                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <div className="flex flex-col items-end gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                         <span
                           className={`dash-badge ${
                             c.status === 'PENDING' ? 'dash-badge-yellow' : 'dash-badge-green'
@@ -324,14 +359,24 @@ export default function AdminDashboardTabs({
                         >
                           {c.status === 'PENDING' ? 'Chưa xử lý' : 'Đã xử lý'}
                         </span>
-                        <button
-                          onClick={() => handleToggleStatus(c.id, c.status)}
-                          disabled={isPending}
-                          className="text-xs text-[var(--color-teak)] hover:underline flex items-center gap-1 cursor-pointer"
-                        >
-                          <RefreshCw size={12} className={isPending ? 'animate-spin' : ''} />
-                          Đổi trạng thái
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setSelectedContact(c)}
+                            className="dash-btn-secondary text-xs !py-1 !px-2 flex items-center gap-1 cursor-pointer"
+                            title="Xem chi tiết"
+                          >
+                            <Eye size={13} />
+                            <span>Xem</span>
+                          </button>
+                          <button
+                            onClick={() => handleToggleStatus(c.id, c.status)}
+                            disabled={isPending}
+                            className="text-xs text-[var(--color-teak)] hover:underline flex items-center gap-1 cursor-pointer"
+                          >
+                            <RefreshCw size={12} className={isPending ? 'animate-spin' : ''} />
+                            Đổi
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -402,6 +447,9 @@ export default function AdminDashboardTabs({
         </div>
       )}
 
+      {/* ─── TAB ANALYTICS: THỐNG KÊ & PHÂN TÍCH ───────────── */}
+      {activeTab === 'analytics' && <AdminAnalyticsTab />}
+
       {/* ─── TAB 2: YÊU CẦU BÁO GIÁ (INQUIRIES) ──────────────── */}
       {activeTab === 'inquiries' && (
         <div className="dash-card overflow-hidden dash-animate-in">
@@ -437,7 +485,11 @@ export default function AdminDashboardTabs({
                 </thead>
                 <tbody>
                   {contacts.map((item) => (
-                    <tr key={item.id}>
+                    <tr
+                      key={item.id}
+                      onClick={() => setSelectedContact(item)}
+                      className="hover:bg-[#FAF8F5] transition-colors cursor-pointer"
+                    >
                       <td>
                         <div className="font-semibold text-sm text-[var(--color-forest)]">{item.name}</div>
                         {item.company ? (
@@ -483,14 +535,32 @@ export default function AdminDashboardTabs({
                           )}
                         </span>
                       </td>
-                      <td className="text-right whitespace-nowrap">
-                        <button
-                          onClick={() => handleToggleStatus(item.id, item.status)}
-                          disabled={isPending}
-                          className="dash-btn-secondary text-xs py-1.5 px-3"
-                        >
-                          {item.status === 'PENDING' ? 'Đánh dấu Đã xử lý' : 'Đổi về Chưa xử lý'}
-                        </button>
+                      <td className="text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setSelectedContact(item)}
+                            className="dash-btn-secondary text-xs py-1.5 px-3 flex items-center gap-1"
+                            title="Xem chi tiết"
+                          >
+                            <Eye size={13} />
+                            <span>Chi tiết</span>
+                          </button>
+                          <button
+                            onClick={() => handleToggleStatus(item.id, item.status)}
+                            disabled={isPending}
+                            className="dash-btn-ghost text-xs py-1.5 px-3 border border-gray-200 hover:bg-gray-100"
+                          >
+                            {item.status === 'PENDING' ? 'Đã xử lý' : 'Chưa xử lý'}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteContact(item.id)}
+                            disabled={isPending}
+                            className="dash-btn-danger text-xs p-1.5"
+                            title="Xóa yêu cầu"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -642,6 +712,16 @@ export default function AdminDashboardTabs({
           </div>
         </div>
       )}
+
+      {/* Modal chi tiết yêu cầu báo giá */}
+      <QuotationDetailModal
+        contact={selectedContact}
+        isOpen={!!selectedContact}
+        onClose={() => setSelectedContact(null)}
+        onToggleStatus={handleToggleStatus}
+        onDelete={handleDeleteContact}
+        isPending={isPending}
+      />
     </div>
   )
 }
