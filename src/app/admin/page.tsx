@@ -1,57 +1,110 @@
-import { Package, MessageSquare, Eye } from 'lucide-react'
+import { prisma } from '@/lib/prisma'
+import AdminDashboardTabs, {
+  SerializedContact,
+  SerializedPost,
+  SerializedProduct,
+} from '@/components/admin/AdminDashboardTabs'
 
-export default function AdminDashboard() {
+export const dynamic = 'force-dynamic'
+
+export default async function AdminDashboardPage() {
+  const [
+    productsCount,
+    productsWith3dCount,
+    pendingContactsCount,
+    totalContactsCount,
+    postsCount,
+    publishedPostsCount,
+    categoriesCount,
+    recentContactsRaw,
+    recentProductsRaw,
+    recentPostsRaw,
+  ] = await Promise.all([
+    prisma.product.count(),
+    prisma.product.count({ where: { model3dUrl: { not: null } } }),
+    prisma.contactRequest.count({ where: { status: 'PENDING' } }),
+    prisma.contactRequest.count(),
+    prisma.post.count(),
+    prisma.post.count({ where: { published: true } }),
+    prisma.category.count(),
+    prisma.contactRequest.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    }),
+    prisma.product.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      include: {
+        category: {
+          select: { name: true },
+        },
+      },
+    }),
+    prisma.post.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    }),
+  ])
+
+  const stats = {
+    productsCount,
+    productsWith3dCount,
+    pendingContactsCount,
+    totalContactsCount,
+    postsCount,
+    publishedPostsCount,
+    categoriesCount,
+  }
+
+  const recentContacts: SerializedContact[] = recentContactsRaw.map((c) => ({
+    id: c.id,
+    name: c.name,
+    email: c.email,
+    phone: c.phone,
+    company: c.company,
+    message: c.message,
+    status: c.status,
+    createdAt: c.createdAt.toISOString(),
+  }))
+
+  const recentProducts: SerializedProduct[] = recentProductsRaw.map((p) => ({
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    imageUrl: p.imageUrl,
+    model3dUrl: p.model3dUrl,
+    price: p.price,
+    categoryName: p.category?.name,
+    createdAt: p.createdAt.toISOString(),
+  }))
+
+  const recentPosts: SerializedPost[] = recentPostsRaw.map((p) => ({
+    id: p.id,
+    title: p.title,
+    slug: p.slug,
+    imageUrl: p.imageUrl,
+    published: p.published,
+    createdAt: p.createdAt.toISOString(),
+  }))
+
   return (
-    <div className="dash-animate-in">
-      <div className="mb-8">
-        <h2 className="text-2xl font-heading text-[var(--color-forest)] font-semibold">Chào mừng trở lại!</h2>
-        <p className="text-gray-500 mt-1">Đây là tổng quan tình hình kinh doanh ngày hôm nay.</p>
-      </div>
-
-      {/* Thống kê */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="dash-stat-card dash-animate-in-delay-1">
-          <div className="dash-icon-circle bg-[var(--color-sand)] text-[var(--color-teak)]">
-            <Package size={24} />
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 font-medium">Tổng sản phẩm</p>
-            <p className="text-2xl font-bold text-[var(--color-forest)]">0</p>
-          </div>
-        </div>
-
-        <div className="dash-stat-card dash-animate-in-delay-2">
-          <div className="dash-icon-circle bg-[var(--color-sand)] text-[var(--color-teak)]">
-            <MessageSquare size={24} />
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 font-medium">Yêu cầu báo giá</p>
-            <p className="text-2xl font-bold text-[var(--color-forest)]">0</p>
-          </div>
-        </div>
-
-        <div className="dash-stat-card dash-animate-in-delay-3">
-          <div className="dash-icon-circle bg-[var(--color-sand)] text-[var(--color-teak)]">
-            <Eye size={24} />
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 font-medium">Lượt xem mô hình 3D</p>
-            <p className="text-2xl font-bold text-[var(--color-forest)]">0</p>
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="dash-page-title">Chào mừng trở lại!</h1>
+          <span className="dash-page-title-underline"></span>
+          <p className="dash-page-desc">
+            Tổng quan tình hình kinh doanh gốm sứ Minh Phương Vĩnh Long hôm nay.
+          </p>
         </div>
       </div>
 
-      {/* Hoạt động gần đây */}
-      <div className="dash-card p-6 dash-animate-in-delay-4">
-        <div className="dash-section-header -mx-6 -mt-6 mb-6 px-6">
-          <h3 className="font-heading text-lg font-medium text-[var(--color-forest)]">Hoạt động gần đây</h3>
-        </div>
-        <div className="dash-empty-state">
-          <Package className="dash-empty-state-icon" size={48} />
-          <p className="dash-empty-state-title">Hệ thống sẵn sàng</p>
-          <p className="dash-empty-state-desc">Hãy bắt đầu thêm sản phẩm gốm sứ đầu tiên của bạn.</p>
-        </div>
-      </div>
+      <AdminDashboardTabs
+        stats={stats}
+        recentContacts={recentContacts}
+        recentProducts={recentProducts}
+        recentPosts={recentPosts}
+      />
     </div>
   )
 }
