@@ -160,7 +160,7 @@ export default function Navbar() {
               </Link>
             </Button>
             <div className="text-center mt-6 text-xs text-[#F5F1EB]/70 font-body">
-              Hotline: 090x xxx xxx • Vĩnh Long
+              Hotline: 0908 458 569 • Vĩnh Long
             </div>
           </div>
         </div>
