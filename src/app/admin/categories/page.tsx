@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   FolderTree,
   Plus,
@@ -19,7 +19,15 @@ import {
   updateCategory,
   deleteCategory,
 } from './actions'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { useUnsavedChanges } from '@/contexts/UnsavedChangesContext'
 
 type CategoryWithRelations = {
   id: string
@@ -52,6 +60,21 @@ export default function AdminCategories() {
   const [submitting, setSubmitting] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
+
+  const initialFormDataRef = useRef<{ name: string; slug: string; parentId: string } | null>(null)
+  const { setIsDirty: setGlobalIsDirty, requestNavigation } = useUnsavedChanges()
+
+  const isFormDirty = useCallback(() => {
+    if (viewMode === 'list' || !initialFormDataRef.current) return false
+    return JSON.stringify(formData) !== JSON.stringify(initialFormDataRef.current)
+  }, [viewMode, formData])
+
+  const dirty = isFormDirty()
+  useEffect(() => {
+    setGlobalIsDirty(dirty)
+    return () => setGlobalIsDirty(false)
+  }, [dirty, setGlobalIsDirty])
 
   const fetchCategories = useCallback(async () => {
     setLoading(true)
@@ -97,19 +120,36 @@ export default function AdminCategories() {
     setMessage(null)
   }
 
-  const handleCreate = () => {
+  const handleStartCreate = () => {
     resetForm()
+    initialFormDataRef.current = { name: '', slug: '', parentId: '' }
     setViewMode('create')
   }
 
   const handleEdit = (category: CategoryWithRelations) => {
-    setFormData({
+    const editForm = {
       name: category.name,
       slug: category.slug,
       parentId: category.parentId || '',
-    })
+    }
+    setFormData(editForm)
+    initialFormDataRef.current = editForm
     setEditingId(category.id)
     setViewMode('edit')
+  }
+
+  const handleBack = () => {
+    requestNavigation('', () => {
+      confirmExit()
+    })
+  }
+
+  const confirmExit = () => {
+    setShowExitConfirm(false)
+    resetForm()
+    initialFormDataRef.current = null
+    setGlobalIsDirty(false)
+    setViewMode('list')
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -236,7 +276,7 @@ export default function AdminCategories() {
               Quản lý danh mục cho các sản phẩm gốm sứ
             </p>
           </div>
-          <button className="dash-btn-primary" onClick={handleCreate}>
+          <button className="dash-btn-primary" onClick={handleStartCreate}>
             <Plus size={18} />
             Thêm danh mục
           </button>
@@ -392,27 +432,56 @@ export default function AdminCategories() {
       {renderMessageToast()}
 
       {/* Page Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <button
-          className="dash-btn-ghost"
-          onClick={() => {
-            setViewMode('list')
-            resetForm()
-          }}
-        >
-          <ArrowLeft size={18} />
-          Quay lại
-        </button>
-        <div>
-          <h2 className="dash-page-title">
-            {viewMode === 'edit' ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới'}
-          </h2>
-          <span className="dash-page-title-underline" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            className="dash-btn-ghost"
+            onClick={handleBack}
+          >
+            <ArrowLeft size={18} />
+            Quay lại
+          </button>
+          <div>
+            <h2 className="dash-page-title">
+              {viewMode === 'edit' ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới'}
+            </h2>
+            <span className="dash-page-title-underline" />
+          </div>
+        </div>
+
+        {/* Action Buttons Top Right */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="dash-btn-secondary"
+            onClick={handleBack}
+          >
+            Hủy
+          </button>
+          <button
+            type="submit"
+            form="category-form"
+            className="dash-btn-primary min-w-[160px] justify-center shadow-md"
+            disabled={!formData.name || submitting}
+          >
+            {submitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Đang lưu...
+              </>
+            ) : (
+              <>
+                <FolderTree size={18} />
+                {viewMode === 'edit' ? 'Cập nhật danh mục' : 'Tạo danh mục'}
+              </>
+            )}
+          </button>
         </div>
       </div>
 
       <div className="max-w-2xl">
-        <form onSubmit={handleSubmit}>
+        <form id="category-form" onSubmit={handleSubmit}>
           <div className="dash-card p-6 dash-animate-in-delay-1">
             <div className="dash-section-header -mx-6 -mt-6 mb-6 px-6">
               <h3 className="font-heading text-lg font-medium text-[var(--color-forest)]">
@@ -487,27 +556,6 @@ export default function AdminCategories() {
               </div>
             </div>
           </div>
-
-          {/* Submit */}
-          <div className="dash-card p-6 mt-6 dash-animate-in-delay-2">
-            <button
-              type="submit"
-              className="dash-btn-primary w-full justify-center py-3 text-base"
-              disabled={!formData.name || submitting}
-            >
-              {submitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Đang lưu...
-                </>
-              ) : (
-                <>
-                  <FolderTree size={18} />
-                  {viewMode === 'edit' ? 'Cập nhật danh mục' : 'Tạo danh mục'}
-                </>
-              )}
-            </button>
-          </div>
         </form>
       </div>
 
@@ -533,6 +581,33 @@ export default function AdminCategories() {
               onClick={confirmSave}
             >
               Xác nhận lưu
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Thoát không lưu thay đổi?</DialogTitle>
+            <DialogDescription>
+              Các thông tin danh mục chưa được lưu. Nếu thoát bây giờ, các thông tin vừa nhập sẽ bị mất. Bạn có chắc chắn muốn thoát không?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <button
+              type="button"
+              className="dash-btn-secondary"
+              onClick={() => setShowExitConfirm(false)}
+            >
+              Tiếp tục chỉnh sửa
+            </button>
+            <button
+              type="button"
+              className="dash-btn-primary !bg-red-600 hover:!bg-red-700 !text-white"
+              onClick={confirmExit}
+            >
+              Thoát không lưu
             </button>
           </DialogFooter>
         </DialogContent>

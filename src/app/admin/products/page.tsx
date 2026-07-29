@@ -21,6 +21,7 @@ import UploadProductImage from '@/components/admin/UploadProductImage'
 import { getProducts, createProduct, deleteProduct, updateProduct } from './actions'
 import { getCategoriesFlat } from '../categories/actions'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useUnsavedChanges } from '@/contexts/UnsavedChangesContext'
 
 type Product = {
   id: string
@@ -73,6 +74,7 @@ export default function AdminProducts() {
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
   const [message, setMessage] = useState<{
     type: 'success' | 'error'
     text: string
@@ -105,6 +107,20 @@ export default function AdminProducts() {
     hotspots: [] as { position: string; normal: string; label: string }[],
     images: [] as { url: string; label: string }[],
   })
+
+  const initialFormDataRef = useRef<typeof formData | null>(null)
+  const { setIsDirty: setGlobalIsDirty, requestNavigation } = useUnsavedChanges()
+
+  const isFormDirty = useCallback(() => {
+    if (viewMode === 'list' || !initialFormDataRef.current) return false
+    return JSON.stringify(formData) !== JSON.stringify(initialFormDataRef.current)
+  }, [viewMode, formData])
+
+  const dirty = isFormDirty()
+  useEffect(() => {
+    setGlobalIsDirty(dirty)
+    return () => setGlobalIsDirty(false)
+  }, [dirty, setGlobalIsDirty])
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -161,7 +177,7 @@ export default function AdminProducts() {
   }
 
   const resetForm = () => {
-    setFormData({
+    const emptyForm = {
       name: '',
       slug: '',
       description: '',
@@ -184,14 +200,22 @@ export default function AdminProducts() {
       origin: '',
       hotspots: [],
       images: [],
-    })
+    }
+    setFormData(emptyForm)
     setEditingId(null)
     setMessage(null)
     setActiveTab('general')
+    return emptyForm
+  }
+
+  const handleStartCreate = () => {
+    const emptyForm = resetForm()
+    initialFormDataRef.current = emptyForm
+    setViewMode('create')
   }
 
   const handleEdit = (product: Product) => {
-    setFormData({
+    const editForm = {
       name: product.name,
       slug: product.slug,
       description: product.description || '',
@@ -214,10 +238,26 @@ export default function AdminProducts() {
       origin: product.origin || '',
       hotspots: product.hotspots || [],
       images: product.images ? product.images.map(img => ({ url: img.url, label: img.label || '' })) : [],
-    })
+    }
+    setFormData(editForm)
+    initialFormDataRef.current = editForm
     setEditingId(product.id)
     setViewMode('edit')
     setActiveTab('general')
+  }
+
+  const handleBack = () => {
+    requestNavigation('', () => {
+      confirmExit()
+    })
+  }
+
+  const confirmExit = () => {
+    setShowExitConfirm(false)
+    resetForm()
+    initialFormDataRef.current = null
+    setGlobalIsDirty(false)
+    setViewMode('list')
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -415,10 +455,7 @@ export default function AdminProducts() {
           </div>
           <button
             className="dash-btn-primary"
-            onClick={() => {
-              resetForm()
-              setViewMode('create')
-            }}
+            onClick={handleStartCreate}
           >
             <Plus size={18} />
             Thêm sản phẩm
@@ -653,26 +690,55 @@ export default function AdminProducts() {
       {renderMessageToast()}
 
       {/* Page Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <button
-          className="dash-btn-ghost"
-          onClick={() => {
-            setViewMode('list')
-            resetForm()
-          }}
-        >
-          <ArrowLeft size={18} />
-          Quay lại
-        </button>
-        <div>
-          <h2 className="dash-page-title">
-            {viewMode === 'edit' ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
-          </h2>
-          <span className="dash-page-title-underline" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            className="dash-btn-ghost"
+            onClick={handleBack}
+          >
+            <ArrowLeft size={18} />
+            Quay lại
+          </button>
+          <div>
+            <h2 className="dash-page-title">
+              {viewMode === 'edit' ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
+            </h2>
+            <span className="dash-page-title-underline" />
+          </div>
+        </div>
+
+        {/* Action Buttons (Top Right Header) */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="dash-btn-secondary"
+            onClick={handleBack}
+          >
+            Hủy
+          </button>
+          <button
+            type="submit"
+            form="product-form"
+            className="dash-btn-primary min-w-[160px] justify-center shadow-md"
+            disabled={!formData.name || submitting}
+          >
+            {submitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Đang lưu...
+              </>
+            ) : (
+              <>
+                <Package size={18} />
+                {viewMode === 'edit' ? 'Cập nhật sản phẩm' : 'Lưu sản phẩm'}
+              </>
+            )}
+          </button>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form id="product-form" onSubmit={handleSubmit}>
         <div className="flex border-b border-[#E0DCD4] mb-6">
           <button
             type="button"
@@ -1244,32 +1310,6 @@ export default function AdminProducts() {
             )}
           </div>
         )}
-
-        {/* Submit Container - Always Visible */}
-        <div className="mt-8 pt-6 border-t border-[#E0DCD4] flex justify-end">
-          <div className="w-full lg:w-1/3">
-            <button
-              type="submit"
-              className="dash-btn-primary w-full justify-center py-3 text-base shadow-lg"
-              disabled={!formData.name || submitting}
-            >
-              {submitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Đang lưu...
-                </>
-              ) : (
-                <>
-                  <Package size={18} />
-                  {viewMode === 'edit' ? 'Cập nhật sản phẩm' : 'Lưu sản phẩm'}
-                </>
-              )}
-            </button>
-            <p className="text-xs text-gray-400 text-center mt-3">
-              Bạn có thể lưu ở bất kỳ tab nào
-            </p>
-          </div>
-        </div>
       </form>
 
       <Dialog open={showSaveConfirm} onOpenChange={setShowSaveConfirm}>
@@ -1294,6 +1334,33 @@ export default function AdminProducts() {
               onClick={confirmSave}
             >
               Xác nhận lưu
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Thoát không lưu thay đổi?</DialogTitle>
+            <DialogDescription>
+              Bạn có những thay đổi chưa được lưu. Các thông tin vừa nhập hoặc chỉnh sửa sẽ bị mất nếu bạn thoát bây giờ. Bạn có chắc chắn muốn thoát không?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <button
+              type="button"
+              className="dash-btn-secondary"
+              onClick={() => setShowExitConfirm(false)}
+            >
+              Tiếp tục chỉnh sửa
+            </button>
+            <button
+              type="button"
+              className="dash-btn-primary !bg-red-600 hover:!bg-red-700 !text-white"
+              onClick={confirmExit}
+            >
+              Thoát không lưu
             </button>
           </DialogFooter>
         </DialogContent>

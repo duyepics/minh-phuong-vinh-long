@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Package, FileText, MessageSquare, FolderTree, Settings } from 'lucide-react'
+import { useUnsavedChanges } from '@/contexts/UnsavedChangesContext'
 
 const navItems = [
   { href: '/admin', label: 'Tổng quan', icon: LayoutDashboard },
@@ -19,6 +20,15 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ userEmail }: AdminSidebarProps) {
   const pathname = usePathname()
+  const { requestNavigation } = useUnsavedChanges()
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (pathname === href) return
+    const safeToNavigate = requestNavigation(href)
+    if (!safeToNavigate) {
+      e.preventDefault()
+    }
+  }
 
   return (
     <aside className="w-64 sidebar-bg text-white flex flex-col shadow-xl z-10">
@@ -34,6 +44,7 @@ export default function AdminSidebar({ userEmail }: AdminSidebarProps) {
             <Link
               key={href}
               href={href}
+              onClick={(e) => handleNavClick(e, href)}
               className={`sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-colors ${
                 isActive ? 'bg-white/15 text-[var(--color-gold)]' : 'hover:bg-white/10'
               }`}

@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Save, CheckCircle2, AlertCircle, X, LayoutTemplate } from 'lucide-react'
 import { getSiteSettings, updateSiteSettings } from './actions'
 import UploadProductImage from '@/components/admin/UploadProductImage'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { getProductsWith3DModel } from './actions'
+import { useUnsavedChanges } from '@/contexts/UnsavedChangesContext'
 
 interface Product3D {
   id: string
@@ -43,15 +44,21 @@ export default function AdminSettings() {
     featured_3d_product_id: '',
   })
 
+  const initialSettingsRef = useRef<typeof formData | null>(null)
+
   useEffect(() => {
     async function loadSettings() {
       try {
         const settings = await getSiteSettings()
         // Override default values with db values if they exist
-        setFormData(prev => ({
-          ...prev,
-          ...settings
-        }))
+        setFormData(prev => {
+          const updated = {
+            ...prev,
+            ...settings
+          }
+          initialSettingsRef.current = updated
+          return updated
+        })
       } catch (error) {
         console.error('Lỗi khi tải cấu hình', error)
       }
@@ -67,6 +74,14 @@ export default function AdminSettings() {
     }
     loadSettings()
   }, [])
+
+  const isDirty = initialSettingsRef.current !== null && JSON.stringify(formData) !== JSON.stringify(initialSettingsRef.current)
+  const { setIsDirty: setGlobalIsDirty } = useUnsavedChanges()
+
+  useEffect(() => {
+    setGlobalIsDirty(isDirty)
+    return () => setGlobalIsDirty(false)
+  }, [isDirty, setGlobalIsDirty])
 
   const handleChange = (key: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [key]: value }))
@@ -88,6 +103,8 @@ export default function AdminSettings() {
     if (result.error) {
       setMessage({ type: 'error', text: result.error })
     } else {
+      initialSettingsRef.current = formData
+      setGlobalIsDirty(false)
       setMessage({ type: 'success', text: 'Đã lưu cấu hình trang chủ thành công!' })
       setTimeout(() => setMessage(null), 3000)
     }
@@ -136,17 +153,39 @@ export default function AdminSettings() {
     <div className="dash-animate-in pb-12">
       {renderMessageToast()}
 
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h2 className="dash-page-title">Cài đặt trang chủ</h2>
           <span className="dash-page-title-underline" />
           <p className="dash-page-desc">
-            Tùy chỉnh nội dung hiển thị trên trang chủ
+            Tùy chỉnh nội dung, hình ảnh và thông tin hiển thị tại trang chủ
           </p>
+        </div>
+
+        {/* Action Button (Top Right Header) */}
+        <div>
+          <button
+            type="submit"
+            form="settings-form"
+            className="dash-btn-primary px-6 py-3 shadow-md"
+            disabled={submitting}
+          >
+            {submitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Đang lưu...
+              </>
+            ) : (
+              <>
+                <Save size={18} />
+                Lưu cấu hình
+              </>
+            )}
+          </button>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form id="settings-form" onSubmit={handleSubmit} className="space-y-8 max-w-5xl">
         
         {/* SECTION 1: HERO BANNER */}
         <div className="dash-card p-6">
@@ -334,28 +373,6 @@ export default function AdminSettings() {
             </div>
           </div>
         </div>
-
-        {/* Submit Button */}
-        <div className="flex justify-end sticky bottom-8">
-          <button
-            type="submit"
-            className="dash-btn-primary px-8 py-3 shadow-xl"
-            disabled={submitting}
-          >
-            {submitting ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Đang lưu...
-              </>
-            ) : (
-              <>
-                <Save size={18} />
-                Lưu cấu hình
-              </>
-            )}
-          </button>
-        </div>
-
       </form>
 
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>

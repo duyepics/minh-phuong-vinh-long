@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, FileText, CheckCircle2, AlertCircle, X, Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
@@ -8,6 +8,7 @@ import { createPost } from '../actions'
 import UploadProductImage from '@/components/admin/UploadProductImage'
 import RichTextEditor from '@/components/admin/RichTextEditor'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useUnsavedChanges } from '@/contexts/UnsavedChangesContext'
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -18,6 +19,7 @@ export default function NewPostPage() {
   const [submitting, setSubmitting] = useState(false)
   const [uploadingContentImage, setUploadingContentImage] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
   const [message, setMessage] = useState<{
     type: 'success' | 'error'
     text: string
@@ -25,6 +27,21 @@ export default function NewPostPage() {
 
   const contentImageInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const isDirty = title.trim() !== '' || content.trim() !== '' || imageUrl !== ''
+  const { setIsDirty: setGlobalIsDirty, requestNavigation } = useUnsavedChanges()
+
+  useEffect(() => {
+    setGlobalIsDirty(isDirty)
+    return () => setGlobalIsDirty(false)
+  }, [isDirty, setGlobalIsDirty])
+
+  const handleExit = () => {
+    requestNavigation('/admin/posts', () => {
+      setGlobalIsDirty(false)
+      router.push('/admin/posts')
+    })
+  }
 
   const triggerContentImageUpload = () => {
     contentImageInputRef.current?.click()
@@ -145,18 +162,45 @@ export default function NewPostPage() {
       )}
 
       {/* Page Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <Link href="/admin/posts" className="dash-btn-ghost">
-          <ArrowLeft size={18} />
-          Quay lại
-        </Link>
-        <div>
-          <h2 className="dash-page-title">Thêm bài viết mới</h2>
-          <span className="dash-page-title-underline" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <button type="button" onClick={handleExit} className="dash-btn-ghost">
+            <ArrowLeft size={18} />
+            Quay lại
+          </button>
+          <div>
+            <h2 className="dash-page-title">Thêm bài viết mới</h2>
+            <span className="dash-page-title-underline" />
+          </div>
+        </div>
+
+        {/* Action Buttons Top Right */}
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={handleExit} className="dash-btn-secondary">
+            Hủy
+          </button>
+          <button
+            type="submit"
+            form="new-post-form"
+            disabled={submitting}
+            className="dash-btn-primary min-w-[140px] shadow-md"
+          >
+            {submitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-1" />
+                Đang lưu...
+              </>
+            ) : (
+              <>
+                <FileText size={16} />
+                Lưu bài viết
+              </>
+            )}
+          </button>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-4xl">
+      <form id="new-post-form" onSubmit={handleSubmit} className="max-w-4xl">
         <div className="dash-card p-6 space-y-6">
           {/* Tiêu đề */}
           <div>
@@ -244,30 +288,6 @@ export default function NewPostPage() {
               placeholder="Soạn thảo nội dung bài viết..."
             />
           </div>
-
-          {/* Nút lưu / hủy */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-[#E0DCD4]">
-            <Link href="/admin/posts" className="dash-btn-secondary">
-              Hủy
-            </Link>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="dash-btn-primary min-w-[140px]"
-            >
-              {submitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-1" />
-                  Đang lưu...
-                </>
-              ) : (
-                <>
-                  <FileText size={16} />
-                  Lưu bài viết
-                </>
-              )}
-            </button>
-          </div>
         </div>
       </form>
 
@@ -293,6 +313,36 @@ export default function NewPostPage() {
               onClick={confirmSave}
             >
               Xác nhận lưu
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Thoát không lưu bài viết?</DialogTitle>
+            <DialogDescription>
+              Nội dung bài viết chưa được lưu. Các thông tin vừa nhập sẽ bị mất nếu bạn thoát bây giờ. Bạn có chắc chắn muốn thoát không?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <button
+              type="button"
+              className="dash-btn-secondary"
+              onClick={() => setShowExitConfirm(false)}
+            >
+              Tiếp tục chỉnh sửa
+            </button>
+            <button
+              type="button"
+              className="dash-btn-primary !bg-red-600 hover:!bg-red-700 !text-white"
+              onClick={() => {
+                setShowExitConfirm(false)
+                router.push('/admin/posts')
+              }}
+            >
+              Thoát không lưu
             </button>
           </DialogFooter>
         </DialogContent>
