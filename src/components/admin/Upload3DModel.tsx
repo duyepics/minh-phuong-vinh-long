@@ -6,6 +6,9 @@ import { Upload, X, CheckCircle, AlertCircle, Box, FileUp } from 'lucide-react'
 interface Upload3DModelProps {
   onUploadSuccess: (url: string) => void
   currentUrl?: string
+  allowedExtensions?: string[]
+  acceptFormat?: string
+  labelHint?: string
 }
 
 type UploadState = 'idle' | 'selected' | 'uploading' | 'success' | 'error'
@@ -22,10 +25,16 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-const ALLOWED_EXTENSIONS = ['.glb', '.gltf']
+const DEFAULT_ALLOWED_EXTENSIONS = ['.glb', '.gltf']
 const MAX_SIZE = 50 * 1024 * 1024 // 50MB
 
-export default function Upload3DModel({ onUploadSuccess, currentUrl }: Upload3DModelProps) {
+export default function Upload3DModel({
+  onUploadSuccess,
+  currentUrl,
+  allowedExtensions = DEFAULT_ALLOWED_EXTENSIONS,
+  acceptFormat = '.glb,.gltf',
+  labelHint = 'Hỗ trợ: .glb, .gltf — Tối đa 50MB',
+}: Upload3DModelProps) {
   const [uploadState, setUploadState] = useState<UploadState>(currentUrl ? 'success' : 'idle')
   const [isDragOver, setIsDragOver] = useState(false)
   const [fileInfo, setFileInfo] = useState<FileInfo | null>(null)
@@ -50,14 +59,14 @@ export default function Upload3DModel({ onUploadSuccess, currentUrl }: Upload3DM
 
   const validateFile = useCallback((file: File): string | null => {
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
-    if (!ALLOWED_EXTENSIONS.includes(ext)) {
-      return `Định dạng "${ext}" không hợp lệ. Chỉ chấp nhận .glb hoặc .gltf`
+    if (!allowedExtensions.includes(ext)) {
+      return `Định dạng "${ext}" không hợp lệ. Chỉ chấp nhận ${allowedExtensions.join(', ')}`
     }
     if (file.size > MAX_SIZE) {
       return `File quá lớn (${formatFileSize(file.size)}). Tối đa 50MB.`
     }
     return null
-  }, [])
+  }, [allowedExtensions])
 
   const handleFileSelect = useCallback((file: File) => {
     const validationError = validateFile(file)
@@ -163,7 +172,7 @@ export default function Upload3DModel({ onUploadSuccess, currentUrl }: Upload3DM
       <input
         ref={fileInputRef}
         type="file"
-        accept=".glb,.gltf"
+        accept={acceptFormat}
         onChange={handleInputChange}
         className="hidden"
         id="upload-3d-input"
@@ -196,7 +205,7 @@ export default function Upload3DModel({ onUploadSuccess, currentUrl }: Upload3DM
                 hoặc <span className="dash-dropzone-link">chọn file từ máy tính</span>
               </p>
               <p className="dash-dropzone-hint">
-                Hỗ trợ: .glb, .gltf — Tối đa 50MB
+                {labelHint}
               </p>
             </div>
           ) : (

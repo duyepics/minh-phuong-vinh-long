@@ -30,6 +30,7 @@ type Product = {
   price: number | null
   imageUrl: string | null
   model3dUrl: string | null
+  model3dIosUrl: string | null
   categoryId: string | null
   category: { id: string; name: string; slug: string } | null
   height: string | null
@@ -62,6 +63,7 @@ type ViewMode = 'list' | 'create' | 'edit'
 export default function AdminProducts() {
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [activeTab, setActiveTab] = useState<'general' | 'specs' | '3d'>('general')
+  const [model3dSubTab, setModel3dSubTab] = useState<'glb' | 'usdz'>('glb')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -86,6 +88,7 @@ export default function AdminProducts() {
     price: '',
     imageUrl: '',
     model3dUrl: '',
+    model3dIosUrl: '',
     categoryId: '',
     height: '',
     width: '',
@@ -132,6 +135,10 @@ export default function AdminProducts() {
     setFormData((prev) => ({ ...prev, model3dUrl: url }))
   }
 
+  const handleIosUploadSuccess = (url: string) => {
+    setFormData((prev) => ({ ...prev, model3dIosUrl: url }))
+  }
+
   const handleImageUploadSuccess = (url: string) => {
     setFormData((prev) => ({ ...prev, imageUrl: url }))
   }
@@ -161,6 +168,7 @@ export default function AdminProducts() {
       price: '',
       imageUrl: '',
       model3dUrl: '',
+      model3dIosUrl: '',
       categoryId: '',
       height: '',
       width: '',
@@ -190,6 +198,7 @@ export default function AdminProducts() {
       price: product.price ? product.price.toString() : '',
       imageUrl: product.imageUrl || '',
       model3dUrl: product.model3dUrl || '',
+      model3dIosUrl: product.model3dIosUrl || '',
       categoryId: product.categoryId || '',
       height: product.height || '',
       width: product.width || '',
@@ -228,6 +237,7 @@ export default function AdminProducts() {
     fd.set('price', formData.price)
     fd.set('imageUrl', formData.imageUrl)
     fd.set('model3dUrl', formData.model3dUrl)
+    fd.set('model3dIosUrl', formData.model3dIosUrl)
     fd.set('categoryId', formData.categoryId)
     fd.set('height', formData.height)
     fd.set('width', formData.width)
@@ -541,22 +551,39 @@ export default function AdminProducts() {
                       )}
                     </td>
                     <td>
-                      {product.model3dUrl ? (
-                        <a
-                          href={product.model3dUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="dash-badge dash-badge-green"
-                        >
-                          <Box size={12} />
-                          Đã có
-                          <ExternalLink size={10} />
-                        </a>
-                      ) : (
-                        <span className="dash-badge dash-badge-gray">
-                          Chưa có
-                        </span>
-                      )}
+                      <div className="flex flex-wrap items-center gap-1">
+                        {product.model3dUrl ? (
+                          <a
+                            href={product.model3dUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="dash-badge dash-badge-green"
+                            title="File GLB (Android & Web)"
+                          >
+                            <Box size={12} />
+                            GLB
+                            <ExternalLink size={10} />
+                          </a>
+                        ) : null}
+                        {product.model3dIosUrl ? (
+                          <a
+                            href={product.model3dIosUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="dash-badge dash-badge-gold"
+                            title="File USDZ (iOS Quick Look)"
+                          >
+                            <Box size={12} />
+                            USDZ
+                            <ExternalLink size={10} />
+                          </a>
+                        ) : null}
+                        {!product.model3dUrl && !product.model3dIosUrl && (
+                          <span className="dash-badge dash-badge-gray">
+                            Chưa có
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <div className="flex items-center justify-end gap-1">
@@ -1012,28 +1039,90 @@ export default function AdminProducts() {
               <div className="dash-section-header -mx-6 -mt-6 mb-6 px-6">
                 <h3 className="font-heading text-lg font-medium text-[var(--color-forest)]">
                   <Box size={18} className="inline-block mr-2 -mt-0.5" />
-                  Mô hình 3D
+                  Mô hình 3D & AR
                 </h3>
-                {formData.model3dUrl && (
-                  <span className="dash-badge dash-badge-green">
-                    Đã tải lên
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {formData.model3dUrl && (
+                    <span className="dash-badge dash-badge-green">
+                      GLB (Android)
+                    </span>
+                  )}
+                  {formData.model3dIosUrl && (
+                    <span className="dash-badge dash-badge-gold">
+                      USDZ (iOS)
+                    </span>
+                  )}
+                </div>
               </div>
 
-              <Upload3DModel
-                onUploadSuccess={handleUploadSuccess}
-                currentUrl={formData.model3dUrl}
-              />
+              {/* Sub-tabs lựa chọn định dạng file 3D */}
+              <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-3">
+                <button
+                  type="button"
+                  onClick={() => setModel3dSubTab('glb')}
+                  className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                    model3dSubTab === 'glb'
+                      ? 'bg-[var(--color-forest)] text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Android / Web (.GLB)
+                  {formData.model3dUrl && <span className="ml-1.5 inline-block w-2 h-2 rounded-full bg-emerald-400" />}
+                </button>
 
-              {formData.model3dUrl && (
-                <div className="mt-4 p-3 rounded-lg bg-[#F5F1EB] border border-[#E0DCD4]">
-                  <p className="text-xs text-gray-500 mb-1 font-medium">
-                    Public URL:
-                  </p>
-                  <p className="text-xs text-[var(--color-teak)] break-all font-mono">
-                    {formData.model3dUrl}
-                  </p>
+                <button
+                  type="button"
+                  onClick={() => setModel3dSubTab('usdz')}
+                  className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                    model3dSubTab === 'usdz'
+                      ? 'bg-[var(--color-forest)] text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  iPhone / iPad (.USDZ)
+                  {formData.model3dIosUrl && <span className="ml-1.5 inline-block w-2 h-2 rounded-full bg-emerald-400" />}
+                </button>
+              </div>
+
+              {model3dSubTab === 'glb' ? (
+                <div>
+                  <Upload3DModel
+                    onUploadSuccess={handleUploadSuccess}
+                    currentUrl={formData.model3dUrl}
+                    allowedExtensions={['.glb', '.gltf']}
+                    acceptFormat=".glb,.gltf"
+                    labelHint="Hỗ trợ: .glb, .gltf (Android & Web) — Tối đa 50MB"
+                  />
+                  {formData.model3dUrl && (
+                    <div className="mt-4 p-3 rounded-lg bg-[#F5F1EB] border border-[#E0DCD4]">
+                      <p className="text-xs text-gray-500 mb-1 font-medium">
+                        Public URL (Android / Web):
+                      </p>
+                      <p className="text-xs text-[var(--color-teak)] break-all font-mono">
+                        {formData.model3dUrl}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <Upload3DModel
+                    onUploadSuccess={handleIosUploadSuccess}
+                    currentUrl={formData.model3dIosUrl}
+                    allowedExtensions={['.usdz']}
+                    acceptFormat=".usdz"
+                    labelHint="Hỗ trợ: .usdz (iPhone/iPad iOS Quick Look) — Tối đa 50MB"
+                  />
+                  {formData.model3dIosUrl && (
+                    <div className="mt-4 p-3 rounded-lg bg-[#F5F1EB] border border-[#E0DCD4]">
+                      <p className="text-xs text-gray-500 mb-1 font-medium">
+                        Public URL (iOS Quick Look):
+                      </p>
+                      <p className="text-xs text-[var(--color-teak)] break-all font-mono">
+                        {formData.model3dIosUrl}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

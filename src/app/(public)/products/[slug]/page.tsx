@@ -131,6 +131,7 @@ export default async function ProductDetailPage(props: { params: Promise<{ slug:
             <ProductMediaGallery 
               imageUrl={product.imageUrl} 
               model3dUrl={product.model3dUrl} 
+              model3dIosUrl={product.model3dIosUrl} 
               productName={product.name} 
               hotspots={product.hotspots}
               images={product.images}

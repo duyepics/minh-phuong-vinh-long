@@ -10,6 +10,7 @@ import {
   CalendarDays,
   ChevronRight,
   Package,
+  Box,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { prisma } from '@/lib/prisma'
@@ -246,32 +247,36 @@ export default async function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════
-          SECTION 3: TRẢI NGHIỆM 3D (Interactive 3D)
+          SECTION 3: 3D MODEL FEATURE SHOWCASE 
           ═══════════════════════════════════════════════════ */}
-      {featured3DProduct && featured3DProduct.model3dUrl && (
-        <section id="interactive-3d" className="py-24 lg:py-32 px-4 sm:px-6 lg:px-8 bg-[#1C2B2B] text-white">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            {/* Left - Content */}
-            <div className="space-y-8 order-2 lg:order-1">
-              <div className="space-y-4">
-                <span className="inline-flex items-center gap-2 text-[var(--color-gold)] text-xs font-semibold tracking-[0.2em] font-accent uppercase">
-                  <span className="w-8 h-[2px] bg-[var(--color-gold)]" />
-                  Trải Nghiệm Trực Quan
-                </span>
-                <h2 className="font-heading text-4xl sm:text-5xl font-bold text-white leading-tight">
-                  Khám Phá Chi Tiết <br />
-                  <span className="text-[var(--color-gold)]">360 Độ</span>
-                </h2>
+      {featured3DProduct && (featured3DProduct.model3dUrl || featured3DProduct.model3dIosUrl) && (
+        <section className="py-20 lg:py-28 px-4 sm:px-6 lg:px-8 bg-[var(--color-forest)] text-white overflow-hidden relative">
+          {/* Subtle Grid Background Pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+          
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center relative z-10">
+            {/* Left Content */}
+            <div className="order-2 lg:order-1 flex flex-col justify-center">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-emerald-300 text-xs font-semibold uppercase tracking-wider w-fit mb-6 border border-white/10">
+                <Box size={14} />
+                <span>Trải Nghiệm Thực Tế Ảo AR</span>
               </div>
-              <p className="text-base sm:text-lg text-white/70 leading-relaxed font-body whitespace-pre-line">
-                Tương tác trực tiếp với sản phẩm <strong className="text-white font-medium">{featured3DProduct.name}</strong>. Xoay, thu phóng và khám phá từng đường nét hoa văn tinh xảo được chế tác thủ công bởi các nghệ nhân.
-              </p>
               
-              <div className="pt-4">
+              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-white mb-6 leading-tight">
+                {featured3DProduct.name}
+              </h2>
+              
+              {featured3DProduct.description && (
+                <p className="text-[#D8D4CD] text-base sm:text-lg leading-relaxed mb-8 line-clamp-4 font-light">
+                  {featured3DProduct.description}
+                </p>
+              )}
+              
+              <div className="flex flex-wrap items-center gap-4">
                 <Link href={`/products/${featured3DProduct.slug}`}>
-                  <Button
+                  <Button 
                     size="lg"
-                    className="bg-[var(--color-gold)] hover:bg-[var(--color-teak)] text-[var(--color-forest)] rounded-full px-8 py-6 text-sm font-semibold tracking-wider font-accent uppercase transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1"
+                    className="bg-[var(--color-gold)] hover:bg-[#B58A3E] text-white font-medium px-8 py-6 rounded-2xl shadow-lg transition-all hover:scale-105"
                   >
                     Xem Chi Tiết Sản Phẩm
                     <ArrowRight size={16} className="ml-2" />
@@ -283,7 +288,8 @@ export default async function Home() {
             {/* Right - 3D Viewer */}
             <div className="relative order-1 lg:order-2 h-[400px] sm:h-[500px] lg:h-[600px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-white/5 p-2">
               <ModelViewer
-                src={featured3DProduct.model3dUrl}
+                src={featured3DProduct.model3dUrl || featured3DProduct.model3dIosUrl || ''}
+                iosSrc={featured3DProduct.model3dIosUrl || undefined}
                 alt={featured3DProduct.name}
                 hotspots={featured3DProduct.hotspots || []}
               />

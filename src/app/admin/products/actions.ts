@@ -23,6 +23,7 @@ export async function createProduct(formData: FormData) {
   const description = formData.get('description') as string | null
   const imageUrl = formData.get('imageUrl') as string | null
   const model3dUrl = formData.get('model3dUrl') as string | null
+  const model3dIosUrl = formData.get('model3dIosUrl') as string | null
   const categoryId = formData.get('categoryId') as string | null
   const price = formData.get('price') as string | null
   const height = formData.get('height') as string | null
@@ -79,6 +80,7 @@ export async function createProduct(formData: FormData) {
       description: description || null,
       imageUrl: imageUrl || null,
       model3dUrl: model3dUrl || null,
+      model3dIosUrl: model3dIosUrl || null,
       price: price ? parseInt(price, 10) : null,
       categoryId: categoryId && categoryId !== '' ? categoryId : null,
       height: height || null,
@@ -132,6 +134,7 @@ export async function updateProduct(id: string, formData: FormData) {
   const description = formData.get('description') as string | null
   const imageUrl = formData.get('imageUrl') as string | null
   const model3dUrl = formData.get('model3dUrl') as string | null
+  const model3dIosUrl = formData.get('model3dIosUrl') as string | null
   const categoryId = formData.get('categoryId') as string | null
   const price = formData.get('price') as string | null
   const height = formData.get('height') as string | null
@@ -197,6 +200,7 @@ export async function updateProduct(id: string, formData: FormData) {
         description: description || null,
         imageUrl: imageUrl || null,
         model3dUrl: model3dUrl || null,
+        model3dIosUrl: model3dIosUrl || null,
         price: price ? parseInt(price, 10) : null,
         categoryId: categoryId && categoryId !== '' ? categoryId : null,
         height: height || null,

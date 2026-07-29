@@ -9,7 +9,7 @@ cloudinary.config({
 })
 
 // Allowed 3D file extensions
-const ALLOWED_EXTENSIONS = ['.glb', '.gltf']
+const ALLOWED_EXTENSIONS = ['.glb', '.gltf', '.usdz']
 // Max file size: 50MB
 const MAX_FILE_SIZE = 50 * 1024 * 1024
 
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       return Response.json(
         {
           success: false,
-          error: `Định dạng file không hợp lệ (${fileExtension}). Chỉ chấp nhận file .glb hoặc .gltf.`,
+          error: `Định dạng file không hợp lệ (${fileExtension}). Chỉ chấp nhận file .glb, .gltf hoặc .usdz.`,
         },
         { status: 400 }
       )

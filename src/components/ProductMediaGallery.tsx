@@ -15,12 +15,13 @@ interface ProductImage {
 interface ProductMediaGalleryProps {
   imageUrl?: string | null;
   model3dUrl?: string | null;
+  model3dIosUrl?: string | null;
   productName: string;
   hotspots?: Hotspot[];
   images?: ProductImage[];
 }
 
-export default function ProductMediaGallery({ imageUrl, model3dUrl, productName, hotspots, images = [] }: ProductMediaGalleryProps) {
+export default function ProductMediaGallery({ imageUrl, model3dUrl, model3dIosUrl, productName, hotspots, images = [] }: ProductMediaGalleryProps) {
   // Gộp ảnh chính và các ảnh phụ
   const allImages = [];
   if (imageUrl) {
@@ -32,7 +33,7 @@ export default function ProductMediaGallery({ imageUrl, model3dUrl, productName,
   }
 
   const has2D = allImages.length > 0;
-  const has3D = !!model3dUrl;
+  const has3D = !!model3dUrl || !!model3dIosUrl;
   const hasBoth = has2D && has3D;
   const showTabs = has3D || allImages.length > 1;
 
@@ -68,8 +69,13 @@ export default function ProductMediaGallery({ imageUrl, model3dUrl, productName,
               </div>
             )}
           </>
-        ) : activeView === '3d' && model3dUrl ? (
-          <ModelViewer src={model3dUrl} alt={`Mô hình 3D của ${productName}`} hotspots={hotspots} />
+        ) : activeView === '3d' && (model3dUrl || model3dIosUrl) ? (
+          <ModelViewer
+            src={model3dUrl || model3dIosUrl || ''}
+            iosSrc={model3dIosUrl || undefined}
+            alt={`Mô hình 3D của ${productName}`}
+            hotspots={hotspots}
+          />
         ) : null}
       </div>
 
