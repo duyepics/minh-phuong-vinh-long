@@ -1,24 +1,25 @@
 import type { Metadata } from "next";
-import { Cormorant, DM_Sans, Jost, Geist } from "next/font/google";
+import { Playfair_Display, Lora, Be_Vietnam_Pro } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const cormorant = Cormorant({
+const playfair = Playfair_Display({
   subsets: ["latin", "vietnamese"],
-  variable: "--font-cormorant",
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-playfair",
 });
 
-const dmSans = DM_Sans({
-  subsets: ["latin", "latin-ext" ],
-  variable: "--font-dm-sans",
+const lora = Lora({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-lora",
 });
 
-const jost = Jost({
-  subsets: ["latin", "latin-ext" ],
-  variable: "--font-jost",
+const beVietnam = Be_Vietnam_Pro({
+  subsets: ["latin", "vietnamese"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-be-vietnam",
 });
 
 export const metadata: Metadata = {
@@ -34,8 +35,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={cn("font-sans", geist.variable)}>
-      <body className={`${cormorant.variable} ${dmSans.variable} ${jost.variable} antialiased`}>
+    <html lang="vi" className={cn("font-sans", beVietnam.variable)}>
+      <body className={`${playfair.variable} ${lora.variable} ${beVietnam.variable} antialiased`}>
         {children}
         <Toaster />
       </body>

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Building2, Mail, MapPin, Phone, Send, ArrowRight, ChevronRight, Home, Package, Minus, Plus } from "lucide-react";
+import { Send, ArrowRight, ChevronRight, Home, Package, Minus, Plus, ShieldCheck, Award, Palette, Truck } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -64,57 +64,59 @@ function QuotationContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-150">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-start">
           
-          {/* Cột thông tin liên hệ (Bên trái) */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* Cột bên trái: Cam kết & Quy trình */}
+          <div className="order-2 lg:order-1 lg:col-span-2 space-y-6">
+
+            {/* Box Cam Kết Chất Lượng */}
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-[#E0DCD4] transition-all hover:shadow-md">
               <h2 className="text-2xl font-bold font-heading text-[var(--color-forest)] mb-6 flex items-center gap-3">
                 <span className="w-8 h-1 bg-[var(--color-gold)] rounded-full"></span>
-                Thông Tin Liên Hệ
+                Cam Kết Dịch Vụ
               </h2>
               
               <div className="space-y-6">
                 <div className="group flex items-start gap-4">
-                  <div className="bg-[#F5F1EB] group-hover:bg-[var(--color-gold)] transition-colors duration-300 p-3 rounded-full text-[var(--color-forest)] group-hover:text-white mt-1 shadow-sm">
-                    <Building2 size={20} />
+                  <div className="bg-[#F5F1EB] group-hover:bg-[var(--color-gold)] transition-colors duration-300 p-3 rounded-full text-[var(--color-forest)] group-hover:text-white mt-1 shadow-sm shrink-0">
+                    <ShieldCheck size={20} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[var(--color-forest)] font-body">Gốm Sứ Minh Phương</h3>
-                    <p className="text-[#4A5E5E] text-sm mt-1 leading-relaxed">Xưởng sản xuất gốm sứ xuất khẩu và nội địa với kinh nghiệm lâu năm.</p>
+                    <h3 className="font-semibold text-[var(--color-forest)] font-body">Tư vấn & Thiết kế miễn phí</h3>
+                    <p className="text-[#4A5E5E] text-sm mt-1 leading-relaxed">Tư vấn chọn mẫu mã, kiểu dáng và thiết kế bản vẽ/phối cảnh phù hợp thương hiệu.</p>
                   </div>
                 </div>
 
                 <div className="group flex items-start gap-4">
-                  <div className="bg-[#F5F1EB] group-hover:bg-[var(--color-gold)] transition-colors duration-300 p-3 rounded-full text-[var(--color-forest)] group-hover:text-white mt-1 shadow-sm">
-                    <MapPin size={20} />
+                  <div className="bg-[#F5F1EB] group-hover:bg-[var(--color-gold)] transition-colors duration-300 p-3 rounded-full text-[var(--color-forest)] group-hover:text-white mt-1 shadow-sm shrink-0">
+                    <Award size={20} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[var(--color-forest)] font-body">Địa chỉ</h3>
-                    <p className="text-[#4A5E5E] text-sm mt-1 leading-relaxed">Tuyến Công Nghiệp Cổ Chiên, Ấp Long Hưng, Xã Thanh Đức, Huyện Long Hồ, Vĩnh Long</p>
+                    <h3 className="font-semibold text-[var(--color-forest)] font-body">Giá gốc tại xưởng Vĩnh Long</h3>
+                    <p className="text-[#4A5E5E] text-sm mt-1 leading-relaxed">Sản xuất trực tiếp không qua trung gian, chính sách chiết khấu tốt cho đơn sỉ.</p>
                   </div>
                 </div>
 
                 <div className="group flex items-start gap-4">
-                  <div className="bg-[#F5F1EB] group-hover:bg-[var(--color-gold)] transition-colors duration-300 p-3 rounded-full text-[var(--color-forest)] group-hover:text-white mt-1 shadow-sm">
-                    <Phone size={20} />
+                  <div className="bg-[#F5F1EB] group-hover:bg-[var(--color-gold)] transition-colors duration-300 p-3 rounded-full text-[var(--color-forest)] group-hover:text-white mt-1 shadow-sm shrink-0">
+                    <Palette size={20} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[var(--color-forest)] font-body">Hotline / Zalo</h3>
-                    <p className="text-[#4A5E5E] text-sm mt-1 font-medium">0909 123 456 <span className="font-normal text-xs">(Mr. Minh)</span></p>
+                    <h3 className="font-semibold text-[var(--color-forest)] font-body">In logo & Quà tặng doanh nghiệp</h3>
+                    <p className="text-[#4A5E5E] text-sm mt-1 leading-relaxed">Công nghệ in khắc logo sắc nét, hỗ trợ đóng gói hộp quà cao cấp chuẩn thương hiệu.</p>
                   </div>
                 </div>
 
                 <div className="group flex items-start gap-4">
-                  <div className="bg-[#F5F1EB] group-hover:bg-[var(--color-gold)] transition-colors duration-300 p-3 rounded-full text-[var(--color-forest)] group-hover:text-white mt-1 shadow-sm">
-                    <Mail size={20} />
+                  <div className="bg-[#F5F1EB] group-hover:bg-[var(--color-gold)] transition-colors duration-300 p-3 rounded-full text-[var(--color-forest)] group-hover:text-white mt-1 shadow-sm shrink-0">
+                    <Truck size={20} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[var(--color-forest)] font-body">Email</h3>
-                    <p className="text-[#4A5E5E] text-sm mt-1 font-medium">contact@minhphuongceramics.com</p>
+                    <h3 className="font-semibold text-[var(--color-forest)] font-body">Giao hàng toàn quốc & Xuất khẩu</h3>
+                    <p className="text-[#4A5E5E] text-sm mt-1 leading-relaxed">Bao bọc chống sốc chuyên dụng, bảo hiểm 100% rủi ro bể vỡ trong quá trình vận chuyển.</p>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             {/* Box Quy trình (Bên trái dưới) */}
             <div className="bg-[var(--color-forest)] text-[#F5F1EB] p-8 rounded-2xl shadow-lg relative overflow-hidden">
               <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-[var(--color-gold)] opacity-10 rounded-full blur-2xl pointer-events-none"></div>
@@ -129,8 +131,8 @@ function QuotationContent() {
             </div>
           </div>
 
-          {/* Cột Form yêu cầu (Bên phải) */}
-          <div className="lg:col-span-3 bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-[#E0DCD4] relative">
+          {/* Cột Form yêu cầu (Bên phải trên Desktop, Hiện trên cùng trên Mobile) */}
+          <div className="order-1 lg:order-2 lg:col-span-3 bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-[#E0DCD4] relative">
             <h2 className="text-3xl font-bold font-heading text-[var(--color-forest)] mb-2">Gửi Yêu Cầu Báo Giá</h2>
             <p className="text-[#4A5E5E] text-sm mb-8 font-body">Vui lòng điền đầy đủ thông tin bên dưới, chúng tôi sẽ xử lý yêu cầu và phản hồi bạn trong thời gian sớm nhất.</p>
             
