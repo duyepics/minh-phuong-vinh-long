@@ -55,3 +55,21 @@ export async function getProductsWith3DModel() {
     orderBy: { createdAt: 'desc' }
   })
 }
+
+// Lấy tất cả sản phẩm để chọn làm Sản Phẩm Nổi Bật
+export async function getAllProductsForSelection() {
+  return await prisma.product.findMany({
+    select: {
+      id: true,
+      name: true,
+      imageUrl: true,
+      category: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+}
+

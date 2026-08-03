@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Save, CheckCircle2, AlertCircle, X, LayoutTemplate } from 'lucide-react'
-import { getSiteSettings, updateSiteSettings } from './actions'
+import { Save, CheckCircle2, AlertCircle, X, LayoutTemplate, Star, ArrowUp, ArrowDown, Trash2, Package } from 'lucide-react'
+import { getSiteSettings, updateSiteSettings, getProductsWith3DModel, getAllProductsForSelection } from './actions'
 import UploadProductImage from '@/components/admin/UploadProductImage'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { getProductsWith3DModel } from './actions'
 import { useUnsavedChanges } from '@/contexts/UnsavedChangesContext'
 
 interface Product3D {
@@ -14,12 +13,20 @@ interface Product3D {
   model3dUrl: string | null
 }
 
+interface SimpleProduct {
+  id: string
+  name: string
+  imageUrl: string | null
+  category?: { name: string } | null
+}
+
 export default function AdminSettings() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [showConfirm, setShowConfirm] = useState(false)
   const [products3D, setProducts3D] = useState<Product3D[]>([])
+  const [allProducts, setAllProducts] = useState<SimpleProduct[]>([])
 
   // Default values
   const [formData, setFormData] = useState({
@@ -31,17 +38,11 @@ export default function AdminSettings() {
     hero_subtitle: 'Chào mừng đến với cơ sở gốm sứ mỹ nghệ Minh Phương – Vĩnh Long. Những tác phẩm gốm sứ độc bản, tinh xảo được chế tác từ bàn tay các nghệ nhân lành nghề, kết hợp công nghệ tương tác 3D đột phá.',
     hero_bg_image: '/hero_pottery_bg.png',
 
-    // About Us
-    about_tagline: 'Về Chúng Tôi',
-    about_title_line1: 'Nơi Đất Đỏ',
-    about_title_highlight: 'Hóa Thành Nghệ Thuật',
-    about_paragraph1: 'Tọa lạc bên dòng sông Cổ Chiên hiền hòa, cơ sở gốm sứ mỹ nghệ Minh Phương đã gắn bó hơn 20 năm với nghề gốm truyền thống Vĩnh Long. Mỗi sản phẩm là kết tinh từ chất đất trù phú, bàn tay khéo léo của nghệ nhân và tâm huyết lưu giữ tinh hoa văn hóa đất Việt.',
-    about_paragraph2: 'Chúng tôi không chỉ tạo ra sản phẩm – chúng tôi gìn giữ câu chuyện của đất, của lửa, của con người Vĩnh Long qua từng đường nét hoa văn tinh xảo.',
-    about_years: '20+',
-    about_image: '/about_artisan.png',
-
     // Featured 3D Product
     featured_3d_product_id: '',
+
+    // Featured Products Selection
+    featured_product_ids: '[]',
   })
 
   const initialSettingsRef = useRef<typeof formData | null>(null)
@@ -64,16 +65,21 @@ export default function AdminSettings() {
       }
 
       try {
-        const products = await getProductsWith3DModel()
+        const [products, allProds] = await Promise.all([
+          getProductsWith3DModel(),
+          getAllProductsForSelection(),
+        ])
         setProducts3D(products)
+        setAllProducts(allProds)
       } catch (error) {
-        console.error('Lỗi khi tải danh sách sản phẩm 3D', error)
+        console.error('Lỗi khi tải danh sách sản phẩm', error)
       } finally {
         setLoading(false)
       }
     }
     loadSettings()
   }, [])
+
 
   const isDirty = initialSettingsRef.current !== null && JSON.stringify(formData) !== JSON.stringify(initialSettingsRef.current)
   const { setIsDirty: setGlobalIsDirty } = useUnsavedChanges()
@@ -85,6 +91,35 @@ export default function AdminSettings() {
 
   const handleChange = (key: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [key]: value }))
+  }
+
+  let selectedFeaturedIds: string[] = []
+  try {
+    selectedFeaturedIds = JSON.parse(formData.featured_product_ids || '[]')
+  } catch {
+    selectedFeaturedIds = []
+  }
+
+  const handleAddFeaturedProduct = (productId: string) => {
+    if (!productId) return
+    if (selectedFeaturedIds.includes(productId)) return
+    const nextIds = [...selectedFeaturedIds, productId]
+    setFormData(prev => ({ ...prev, featured_product_ids: JSON.stringify(nextIds) }))
+  }
+
+  const handleRemoveFeaturedProduct = (productId: string) => {
+    const nextIds = selectedFeaturedIds.filter(id => id !== productId)
+    setFormData(prev => ({ ...prev, featured_product_ids: JSON.stringify(nextIds) }))
+  }
+
+  const handleMoveFeaturedProduct = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    if (targetIndex < 0 || targetIndex >= selectedFeaturedIds.length) return
+    const nextIds = [...selectedFeaturedIds]
+    const temp = nextIds[index]
+    nextIds[index] = nextIds[targetIndex]
+    nextIds[targetIndex] = temp
+    setFormData(prev => ({ ...prev, featured_product_ids: JSON.stringify(nextIds) }))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -259,96 +294,12 @@ export default function AdminSettings() {
           </div>
         </div>
 
-        {/* SECTION 2: ABOUT US */}
+        {/* SECTION 2: SẢN PHẨM 3D NỔI BẬT */}
         <div className="dash-card p-6">
           <div className="dash-section-header -mx-6 -mt-6 mb-6 px-6">
             <h3 className="font-heading text-lg font-medium text-[var(--color-forest)] flex items-center gap-2">
               <LayoutTemplate size={18} />
-              Section 2: Về Chúng Tôi
-            </h3>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="dash-label">Tagline</label>
-                  <input
-                    type="text"
-                    className="dash-input"
-                    value={formData.about_tagline}
-                    onChange={(e) => handleChange('about_tagline', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="dash-label">Số năm kinh nghiệm</label>
-                  <input
-                    type="text"
-                    className="dash-input"
-                    value={formData.about_years}
-                    onChange={(e) => handleChange('about_years', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="dash-label">Tiêu đề chính</label>
-                  <input
-                    type="text"
-                    className="dash-input"
-                    value={formData.about_title_line1}
-                    onChange={(e) => handleChange('about_title_line1', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="dash-label">Từ khóa nổi bật (Màu đồng)</label>
-                  <input
-                    type="text"
-                    className="dash-input"
-                    value={formData.about_title_highlight}
-                    onChange={(e) => handleChange('about_title_highlight', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="dash-label">Đoạn văn 1</label>
-                <textarea
-                  className="dash-textarea"
-                  rows={4}
-                  value={formData.about_paragraph1}
-                  onChange={(e) => handleChange('about_paragraph1', e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="dash-label">Đoạn văn 2</label>
-                <textarea
-                  className="dash-textarea"
-                  rows={3}
-                  value={formData.about_paragraph2}
-                  onChange={(e) => handleChange('about_paragraph2', e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="dash-label">Ảnh minh họa</label>
-              <UploadProductImage
-                currentUrl={formData.about_image}
-                onUploadSuccess={(url) => handleChange('about_image', url)}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 3: SẢN PHẨM 3D NỔI BẬT */}
-        <div className="dash-card p-6">
-          <div className="dash-section-header -mx-6 -mt-6 mb-6 px-6">
-            <h3 className="font-heading text-lg font-medium text-[var(--color-forest)] flex items-center gap-2">
-              <LayoutTemplate size={18} />
-              Section 3: Sản Phẩm 3D Nổi Bật (Trang chủ)
+              Section 2: Sản Phẩm 3D Nổi Bật (Trang chủ)
             </h3>
           </div>
           
@@ -370,6 +321,138 @@ export default function AdminSettings() {
               <p className="text-sm text-[var(--color-slate)] mt-2">
                 Phần này sẽ hiển thị mô hình 3D của sản phẩm ngay tại trang chủ để người dùng tương tác trực tiếp. (Chỉ những sản phẩm có mô hình 3D mới xuất hiện ở đây).
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 3: SẢN PHẨM NỔI BẬT */}
+        <div className="dash-card p-6">
+          <div className="dash-section-header -mx-6 -mt-6 mb-6 px-6">
+            <h3 className="font-heading text-lg font-medium text-[var(--color-forest)] flex items-center gap-2">
+              <Star size={18} className="text-amber-500 fill-amber-500" />
+              Section 3: Sản Phẩm Nổi Bật (Trang chủ)
+            </h3>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <label className="dash-label">Thêm sản phẩm vào danh sách Nổi Bật</label>
+              <div className="flex gap-3">
+                <select
+                  className="dash-input flex-1"
+                  value=""
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleAddFeaturedProduct(e.target.value)
+                    }
+                  }}
+                >
+                  <option value="">-- Chọn sản phẩm để thêm vào Nổi Bật --</option>
+                  {allProducts
+                    .filter(p => !selectedFeaturedIds.includes(p.id))
+                    .map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.name} {product.category ? `(${product.category.name})` : ''}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <p className="text-sm text-[var(--color-slate)] mt-2">
+                Chọn sản phẩm từ danh mục để đưa lên mục Sản Phẩm Nổi Bật tại trang chủ.
+              </p>
+            </div>
+
+            {/* Selected products list */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-semibold text-[var(--color-forest)]">
+                  Danh sách sản phẩm nổi bật ({selectedFeaturedIds.length})
+                </span>
+                {selectedFeaturedIds.length > 0 && (
+                  <span className="text-xs text-[var(--color-slate)]">
+                    Dùng nút mũi tên để thay đổi vị trí sắp xếp
+                  </span>
+                )}
+              </div>
+
+              {selectedFeaturedIds.length === 0 ? (
+                <div className="p-8 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                  <Package className="w-10 h-10 mx-auto text-gray-300 mb-2" />
+                  <p className="text-sm text-gray-500 font-medium">Chưa chọn sản phẩm nổi bật nào</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Vui lòng chọn sản phẩm ở ô phía trên để hiển thị tại mục Sản Phẩm Nổi Bật trên trang chủ.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {selectedFeaturedIds.map((id, index) => {
+                    const product = allProducts.find(p => p.id === id)
+                    if (!product) return null
+                    return (
+                      <div
+                        key={id}
+                        className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200 hover:border-[var(--color-gold)] transition-colors shadow-sm"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="w-6 h-6 flex items-center justify-center rounded-full bg-amber-100 text-amber-800 text-xs font-bold flex-shrink-0">
+                            {index + 1}
+                          </span>
+                          {product.imageUrl ? (
+                            <img
+                              src={product.imageUrl}
+                              alt={product.name}
+                              className="w-10 h-10 object-cover rounded-lg flex-shrink-0 border"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 border">
+                              <Package size={18} className="text-gray-400" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <h4 className="text-sm font-medium text-gray-900 truncate">
+                              {product.name}
+                            </h4>
+                            {product.category && (
+                              <span className="text-xs text-gray-500">
+                                {product.category.name}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleMoveFeaturedProduct(index, 'up')}
+                            disabled={index === 0}
+                            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent"
+                            title="Di chuyển lên"
+                          >
+                            <ArrowUp size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveFeaturedProduct(index, 'down')}
+                            disabled={index === selectedFeaturedIds.length - 1}
+                            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent"
+                            title="Di chuyển xuống"
+                          >
+                            <ArrowDown size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFeaturedProduct(id)}
+                            className="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
+                            title="Xóa khỏi danh sách"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

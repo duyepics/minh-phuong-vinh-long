@@ -27,7 +27,7 @@ export default function BlogCard({ post }: { post: BlogPost }) {
   }).format(new Date(post.createdAt));
 
   return (
-    <Link href={`/blog/${post.slug}`} className="group flex flex-col h-full block overflow-hidden rounded-2xl bg-white shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all duration-500 hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] hover:-translate-y-1">
+    <Link href={`/blog/${post.slug}`} className="group flex flex-col h-full overflow-hidden rounded-2xl bg-white shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all duration-500 hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] hover:-translate-y-1">
       {/* Hình ảnh bài viết */}
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#F5F1EB]">
         {post.imageUrl ? (
