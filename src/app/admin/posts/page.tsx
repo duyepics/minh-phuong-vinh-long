@@ -26,7 +26,7 @@ export default async function AdminPosts() {
       </div>
 
       {/* Posts Table or Empty State */}
-      <div className="dash-card overflow-hidden">
+      <div className="dash-card overflow-x-auto">
         {posts.length === 0 ? (
           <div className="dash-empty-state">
             <FileText className="dash-empty-state-icon" size={56} />
@@ -36,20 +36,20 @@ export default async function AdminPosts() {
             </p>
           </div>
         ) : (
-          <table className="dash-table">
+          <table className="dash-table w-full">
             <thead>
               <tr>
-                <th>Tiêu đề</th>
-                <th>Trạng thái</th>
-                <th>Ngày tạo</th>
-                <th style={{ textAlign: 'right' }}>Hành động</th>
+                <th className="min-w-[280px]">Tiêu đề</th>
+                <th className="w-[140px] whitespace-nowrap">Trạng thái</th>
+                <th className="w-[140px] whitespace-nowrap">Ngày tạo</th>
+                <th className="w-[120px] whitespace-nowrap text-right">Hành động</th>
               </tr>
             </thead>
             <tbody>
               {posts.map((post) => (
                 <tr key={post.id}>
                   <td className="max-w-[400px]">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       {post.imageUrl ? (
                         <img
                           src={post.imageUrl}
@@ -61,17 +61,17 @@ export default async function AdminPosts() {
                           <FileText size={16} className="text-gray-400" />
                         </div>
                       )}
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <p className="font-medium text-sm truncate" title={post.title}>
                           {post.title}
                         </p>
-                        <code className="text-xs text-gray-400">
+                        <code className="text-xs text-gray-400 block truncate" title={`/${post.slug}`}>
                           /{post.slug}
                         </code>
                       </div>
                     </div>
                   </td>
-                  <td>
+                  <td className="whitespace-nowrap">
                     {post.published ? (
                       <span className="dash-badge dash-badge-green">
                         Đã xuất bản
@@ -82,7 +82,7 @@ export default async function AdminPosts() {
                       </span>
                     )}
                   </td>
-                  <td>
+                  <td className="whitespace-nowrap">
                     <span className="text-sm text-gray-600">
                       {new Date(post.createdAt).toLocaleDateString('vi-VN', {
                         day: '2-digit',
@@ -91,7 +91,7 @@ export default async function AdminPosts() {
                       })}
                     </span>
                   </td>
-                  <td>
+                  <td className="whitespace-nowrap">
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/admin/posts/${post.id}/edit`}
