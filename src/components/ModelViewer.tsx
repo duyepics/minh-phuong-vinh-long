@@ -56,6 +56,23 @@ export default function ModelViewer({ src, alt = '3D Model', poster, iosSrc, hot
     setIsMounted(true);
   }, []);
 
+  useEffect(() => {
+    const viewerRef = modelViewerRef.current as any;
+    if (!viewerRef) return;
+
+    const handleArStatus = (event: any) => {
+      // Khi bắt đầu phiên AR, tự động tắt xoay để tránh vật thể trôi/di chuyển khỏi khung hình
+      if (event.detail.status === 'session-started') {
+        setIsAutoRotate(false);
+      }
+    };
+
+    viewerRef.addEventListener('ar-status', handleArStatus);
+    return () => {
+      viewerRef.removeEventListener('ar-status', handleArStatus);
+    };
+  }, [isMounted]);
+
   if (!isMounted) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-2xl animate-pulse">
@@ -79,6 +96,8 @@ export default function ModelViewer({ src, alt = '3D Model', poster, iosSrc, hot
         ar
         ar-modes="webxr scene-viewer quick-look" // Tối ưu công nghệ AR
         ar-scale="auto" // Tự động scale
+        ar-placement="floor" // Đặt vật thể cố định lên sàn
+        bounds="tight"
         interaction-prompt="auto"
         rotation-per-second="30deg"
         style={{ width: '100%', height: '100%', outline: 'none' }}
