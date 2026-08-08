@@ -95,10 +95,10 @@ export default function ModelViewer({ src, alt = '3D Model', poster, iosSrc, hot
         exposure="1"
         ar
         ar-modes="webxr scene-viewer quick-look" // Tối ưu công nghệ AR
-        ar-scale="auto" // Tự động scale
+        ar-scale="fixed" // Giữ nguyên tỉ lệ kích thước cố định trong AR, tránh tự động co giãn/trôi vật thể
         ar-placement="floor" // Đặt vật thể cố định lên sàn
         bounds="tight"
-        interaction-prompt="auto"
+        interaction-prompt="none" // Tắt hiệu ứng gợi ý xoay tự động của model-viewer
         rotation-per-second="30deg"
         style={{ width: '100%', height: '100%', outline: 'none' }}
         class="w-full h-full"
