@@ -193,20 +193,14 @@ export default async function Home() {
 
           {/* Quick Stats Row */}
           <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-16 pt-6 sm:pt-8 border-t border-white/10 mt-6 sm:mt-8 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-700 fill-mode-both">
-            {[
-              { number: '9+', label: 'Năm Kinh Nghiệm' },
-              { number: '100%', label: 'Chế Tác Thủ Công' },
-              { number: '1000+', label: 'Khách Hàng Tin Dùng' },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <span className="block text-2xl sm:text-4xl font-bold font-heading text-[var(--color-gold)]">
-                  {stat.number}
-                </span>
-                <span className="text-[10px] sm:text-xs text-white/50 font-body tracking-wide">
-                  {stat.label}
-                </span>
-              </div>
-            ))}
+            <div className="text-center">
+              <span className="block text-2xl sm:text-4xl font-bold font-heading text-[var(--color-gold)]">
+                9+
+              </span>
+              <span className="text-[10px] sm:text-xs text-white/50 font-body tracking-wide">
+                Năm Kinh Nghiệm
+              </span>
+            </div>
           </div>
         </div>
 
