@@ -61,9 +61,15 @@ export default function ModelViewer({ src, alt = '3D Model', poster, iosSrc, hot
     if (!viewerRef) return;
 
     const handleArStatus = (event: any) => {
-      // Khi bắt đầu phiên AR, tự động tắt xoay để tránh vật thể trôi/di chuyển khỏi khung hình
+      // Khi bắt đầu phiên AR, tắt xoay ngay lập tức để tránh vật thể trôi/di chuyển
       if (event.detail.status === 'session-started') {
         setIsAutoRotate(false);
+        // Tắt trực tiếp trên element để tránh độ trễ của React state
+        viewerRef.removeAttribute('auto-rotate');
+      }
+      // Khi AR kết thúc, khôi phục lại trạng thái trước
+      if (event.detail.status === 'not-presenting') {
+        // Không tự khôi phục auto-rotate, để người dùng tự bật lại nếu muốn
       }
     };
 
@@ -94,12 +100,14 @@ export default function ModelViewer({ src, alt = '3D Model', poster, iosSrc, hot
         shadow-intensity="1"
         exposure="1"
         ar
-        ar-modes="webxr scene-viewer quick-look" // Tối ưu công nghệ AR
-        ar-scale="fixed" // Giữ nguyên tỉ lệ kích thước cố định trong AR, tránh tự động co giãn/trôi vật thể
-        ar-placement="floor" // Đặt vật thể cố định lên sàn
+        ar-modes="scene-viewer webxr quick-look"
+        ar-scale="fixed"
+        ar-placement="floor"
+        xr-environment
         bounds="tight"
-        interaction-prompt="none" // Tắt hiệu ứng gợi ý xoay tự động của model-viewer
+        interaction-prompt="none"
         rotation-per-second="30deg"
+        disable-pan
         style={{ width: '100%', height: '100%', outline: 'none' }}
         class="w-full h-full"
       >
