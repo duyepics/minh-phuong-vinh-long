@@ -19,6 +19,20 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "50mb",
     },
   },
+  // Đảm bảo file USDZ được serve với đúng MIME type cho iOS Safari Quick Look AR
+  async headers() {
+    return [
+      {
+        source: "/:path*.usdz",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "model/vnd.usdz+zip",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

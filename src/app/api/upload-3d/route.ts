@@ -79,12 +79,18 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
+    // iOS Safari Quick Look yêu cầu URL phải kết thúc bằng .usdz
+    // Dùng use_filename + unique_filename để giữ nguyên tên file (kể cả extension) trong URL
+    const isUsdz = fileExtension === '.usdz'
+
     const uploadResult = await new Promise<any>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: 'minh_phuong_3d_models',
-          public_id: `${Date.now()}-${baseName}`,
-          resource_type: 'raw', // Use raw for GLB/GLTF if not using 3D add-on
+          public_id: `${Date.now()}-${baseName}${isUsdz ? '.usdz' : ''}`,
+          resource_type: 'raw',
+          use_filename: false,
+          unique_filename: false,
         },
         (error, result) => {
           if (error) reject(error)
