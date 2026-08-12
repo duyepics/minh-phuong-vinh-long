@@ -120,6 +120,8 @@ export default function ModelViewer({ src, alt = '3D Model', poster, iosSrc, hot
 
   // Nút AR iOS Quick Look — render vào document.body qua portal
   // Dùng position:fixed để không bị clip bởi overflow:hidden của bất kỳ ancestor nào
+  // iOS Quick Look yêu cầu <img> là first child với src hợp lệ (không được empty)
+  const IOS_AR_IMG = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   const iosArButton = isIOS && iosSrc
     ? createPortal(
         <a
@@ -146,17 +148,24 @@ export default function ModelViewer({ src, alt = '3D Model', poster, iosSrc, hot
           }}
           title="Xem trong phòng của bạn (AR)"
         >
-          {/* Ảnh placeholder — bắt buộc theo iOS Quick Look WebKit spec */}
+          {/* img PHẢI là first child với src hợp lệ — đây là yêu cầu bắt buộc của iOS Quick Look WebKit */}
+          {/* Dùng 1×1 transparent GIF, phủ toàn button bằng position:absolute để không che UI */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="" alt="" width={0} height={0} style={{ width: 0, height: 0, position: 'absolute', opacity: 0 }} />
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 18, height: 18, flexShrink: 0 }}>
+          <img
+            src={IOS_AR_IMG}
+            alt="Xem trong phòng của bạn"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.001 }}
+          />
+          {/* Icon & text hiển thị trên img */}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 18, height: 18, flexShrink: 0, position: 'relative', zIndex: 1 }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" />
           </svg>
-          <span>Xem AR</span>
+          <span style={{ position: 'relative', zIndex: 1 }}>Xem AR</span>
         </a>,
         document.body
       )
     : null;
+
 
   return (
     <>
